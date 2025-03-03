@@ -187,33 +187,33 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("You said: $recordedText")
-        Text("Mistral AI: $aiResponse")
+        //Text("You said: $recordedText")
+        //Text("Mistral AI: $aiResponse")
 
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
+        /*Button(
             onClick = { startRecording() },
             enabled = !isRecording
         ) {
             Text(if (isRecording) "Listening..." else "Record")
-        }
+        }*/
 
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
+        /*Button(
             onClick = { playResponse() },
             enabled = aiResponse.isNotEmpty()
         ) {
             Text("Play Response")
-        }
+        }*/
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    GreetingCardTheme {
-        Greeting("Android")
-    }
+    //GreetingCardTheme {
+    //    Greeting("Android")
+    //}
 }

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="25dp"
+    android:paddingBottom="25dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <Switch
+            android:id="@+id/swt_speak_asap"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_rowWeight="1"
+            android:text="@string/speak_asap"
+            android:layout_gravity="start"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+        <ImageButton
+            android:id="@+id/btn_tap_to_record"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:textAlignment="center"
+            android:contentDescription="@string/tap_to_record"
+            android:background="@drawable/rounded_button"
+            android:src="@android:drawable/ic_btn_speak_now"
+            app:tint="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/txt_tap_to_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tap_to_record"
+            app:layout_constraintTop_toBottomOf="@+id/btn_tap_to_record"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <GridLayout
+            android:id="@+id/grd_media_controller"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:rowCount="1"
+            android:columnCount="3"
+            android:alignmentMode="alignMargins"
+            android:useDefaultMargins="true"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <ImageButton
+                android:id="@+id/btn_play"
+                android:layout_row="0"
+                android:layout_column="0"
+                android:layout_width="0dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="18dp"
+                android:contentDescription="@string/play"
+                android:background="@drawable/rounded_button"
+                android:src="@android:drawable/ic_media_play"
+                app:tint="@android:color/white"/>
+
+            <ImageButton
+                android:id="@+id/btn_pause"
+                android:layout_row="0"
+                android:layout_column="1"
+                android:layout_width="0dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="18dp"
+                android:contentDescription="@string/play"
+                android:background="@drawable/rounded_button"
+                android:src="@android:drawable/ic_media_pause"
+                app:tint="@android:color/white"/>
+
+            <ImageButton
+                android:id="@+id/btn_stop"
+                android:layout_row="0"
+                android:layout_column="2"
+                android:layout_width="0dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="18dp"
+                android:contentDescription="@string/play"
+                android:background="@drawable/rounded_button"
+                android:src="@drawable/ic_stop"
+                app:tint="@android:color/white"/>
+
+        </GridLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/txt_response"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/progress_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@android:style/Widget.ProgressBar.Large"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/processing"/>
+
+    </LinearLayout>
+
+</FrameLayout>
