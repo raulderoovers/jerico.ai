@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">AssistIA</string>
-    <string name="speak_asap">Speak ASAP</string>
-    <string name="tap_to_record">Tap to Record</string>
-    <string name="speech_recognition_not_supported">Speech recognition not supported!></string>
+    <string name="speak_asap">Play immediately</string>
+    <string name="tap_to_record">Tap to talk</string>
+    <string name="speech_recognition_not_supported">Speech recognition not supported!</string>
     <string name="speak_now">Speak now…</string>
     <string name="processing">Processing…</string>
     <string name="play">Play</string>

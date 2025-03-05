@@ -1,6 +1,6 @@
 package com.assistia.contract;
 
 public interface IAssistantResponse {
-    boolean IsSuccessful();
-    String Message();
+    boolean isSuccessful();
+    String getMessage();
 }

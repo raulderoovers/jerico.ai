@@ -9,14 +9,13 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
+import android.widget.ListView;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,32 +28,43 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 
-import com.assistia.contract.IAssistantResponse;
+import com.assistia.adapter.ChatAdapter;
 import com.assistia.contract.IAssistantService;
+import com.assistia.model.AssistIAChatMessage;
+import com.assistia.model.BaseChatMessage;
+import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String LOG_TAG = "AssistIA-MainActivity"; // Define a TAG for logging
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     Switch swtSpeakAsap;
     ImageButton btnTapToRecord;
     ImageButton btnPlay;
     ImageButton btnPause;
     ImageButton btnStop;
-    TextView txtResponse;
+    ListView lvwChat;
     LinearLayout mainContent;
     LinearLayout progressSection;
 
+    boolean lastSynthesizeSucceeded = false;
     boolean speakAsap = false;
+    String speakNowMessage;
 
     IAssistantService assistantService;
-    MediaPlayer mediaPlayer;
+    MediaPlayer mediaPlayerForLastMessage;
     File audioFile;
     TextToSpeech textToSpeech;
+    ChatAdapter chatAdapter;
     ActivityResultLauncher<Intent> someActivityLauncher;
+    List<BaseChatMessage> messages;
 
     @SuppressLint({"WrongViewCast", "MissingInflatedId"})
     @Override
@@ -69,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        Log.d(LOG_TAG, "onCreate: Activity started");
+
         this.swtSpeakAsap = findViewById(R.id.swt_speak_asap);
         this.swtSpeakAsap.setOnCheckedChangeListener((buttonView, isChecked) -> speakAsap = isChecked);
 
@@ -76,22 +88,44 @@ public class MainActivity extends AppCompatActivity {
         this.btnTapToRecord.setOnClickListener(v -> startSpeechRecognition());
 
         this.btnPlay = findViewById(R.id.btn_play);
-        this.btnPlay.setOnClickListener(v -> mediaPlayer.start());
+        this.btnPlay.setOnClickListener(v -> {
+            disableRecordControl();
+            mediaPlayerForLastMessage.start();
+        });
 
         this.btnPause = findViewById(R.id.btn_pause);
-        this.btnPause.setOnClickListener(v -> mediaPlayer.pause());
+        this.btnPause.setOnClickListener(v -> {
+            mediaPlayerForLastMessage.pause();
+            enableRecordControl();
+        });
 
         this.btnStop = findViewById(R.id.btn_stop);
-        this.btnStop.setOnClickListener(v -> mediaPlayer.stop());
+        this.btnStop.setOnClickListener(v -> {
+            mediaPlayerForLastMessage.stop();
+            mediaPlayerForLastMessage.reset();
+            try {
+                mediaPlayerForLastMessage.setDataSource(audioFile.getAbsolutePath());
+                mediaPlayerForLastMessage.prepare();
+            } catch (Exception e) {
+                // TODO: do something...
+            }
 
-        this.txtResponse = findViewById(R.id.txt_response);
+            enableRecordControl();
+        });
+
+        disablePlaybackControls();
+
+        messages = new ArrayList<>();
+        chatAdapter = new ChatAdapter(this, messages);
+        this.lvwChat = findViewById(R.id.lvw_chat);
+        this.lvwChat.setAdapter(chatAdapter);
+        this.lvwChat.post(() -> lvwChat.setSelection(chatAdapter.getCount() - 1));
 
         this.mainContent = findViewById(R.id.main_content);
         this.progressSection = findViewById(R.id.progress_section);
 
-        this.mediaPlayer = new MediaPlayer();
-
         this.textToSpeech = new TextToSpeech(this, status -> {
+            // TODO: properly implement languages...
             if (status == TextToSpeech.SUCCESS) {
                 int result = textToSpeech.setLanguage(new Locale("es", "AR")); // Spanish Argentina
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
@@ -100,16 +134,80 @@ public class MainActivity extends AppCompatActivity {
                 textToSpeech.setSpeechRate(1.2f);
             }
         });
+        textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+                // Speech synthesis started
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                // Speech synthesis complete, start playback
+                runOnUiThread(() -> {
+                    boolean ok = false;
+                    try {
+                        // TODO: add to latest message with play and pause icons!
+                        mediaPlayerForLastMessage = new MediaPlayer();
+                        mediaPlayerForLastMessage.setDataSource(audioFile.getAbsolutePath());
+                        mediaPlayerForLastMessage.prepare();
+                        ok = true;
+                    } catch (Exception e) {
+                        Log.d(LOG_TAG, "Error converting text to speech: " + e.getMessage());
+                    }
+
+                    // Hide loading indicator and restore content
+                    enableRecordControl();
+                    hideLoadingIndicator();
+                    if (ok && lastSynthesizeSucceeded) {
+                        enablePlaybackControls();
+
+                        if(speakAsap) {
+                            // TODO: replace with full custom method
+                            btnPlay.callOnClick();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+                // Handle errors if needed
+                runOnUiThread(() -> {
+                    // Hide loading indicator and restore content
+                    progressSection.setVisibility(View.GONE);
+                    mainContent.setAlpha(1.0f);
+                    mainContent.setEnabled(true);
+                });
+            }
+        });
 
         StartActivityForResult startActivityForResult = new StartActivityForResult();
         this.someActivityLauncher = registerForActivityResult(startActivityForResult, this::processResult);
 
+        this.speakNowMessage = getString(R.string.speak_now);
+
         String apiUrl = BuildConfig.ASSISTANT_SERVICE_URL;
         String apiKey = BuildConfig.ASSISTANT_SERVICE_KEY;
         this.assistantService = new MistralAIService(apiUrl, apiKey);
+
+        Log.d(LOG_TAG, "onCreate: Started OK!");
+    }
+
+    private void enablePlaybackControls() {
+        setPlaybackControlsEnabledStatus(true);
+    }
+
+    private void hideLoadingIndicator() {
+        progressSection.setVisibility(View.GONE);
+        mainContent.setAlpha(1.0f);
+        mainContent.setEnabled(true);
     }
 
     private void startSpeechRecognition() {
+        // Disable buttons until action finishes
+        Log.d(LOG_TAG, "startSpeechRecognition: Started");
+        disableControls();
+
         // TODO: this should be on startup...
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             String msg = getString(R.string.speech_recognition_not_supported);
@@ -117,43 +215,103 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String speakNowMessage = getString(R.string.speak_now);
+        // Create Speech Recognition Intent
+        Intent intent = createRecognizerIntent();
+        Log.d(LOG_TAG, "startSpeechRecognition: Intent created");
+
+        // Launch Intent for response
+        this.someActivityLauncher.launch(intent);
+        Log.d(LOG_TAG, "startSpeechRecognition: Recognizer launched");
+    }
+
+    private void disableControls() {
+        setControlsEnabledStatus(false);
+    }
+
+    private void disablePlaybackControls() {
+        setPlaybackControlsEnabledStatus(false);
+    }
+
+    private void setControlsEnabledStatus(boolean enabled) {
+        setRecordControlEnabledStatus(enabled);
+        setPlaybackControlsEnabledStatus(enabled);
+    }
+
+    private void setRecordControlEnabledStatus(boolean enabled) {
+        this.btnTapToRecord.setEnabled(enabled);
+    }
+
+    private void setPlaybackControlsEnabledStatus(boolean enabled) {
+        this.btnPlay.setEnabled(enabled);
+        this.btnPause.setEnabled(enabled);
+        this.btnStop.setEnabled(enabled);
+    }
+
+    private Intent createRecognizerIntent() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-AR");
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, speakNowMessage);
-        someActivityLauncher.launch(intent);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, this.speakNowMessage);
+        return intent;
     }
 
     private void processResult(ActivityResult result) {
+        Log.d(LOG_TAG, "processResult: Started");
+
         Pair<Boolean, String> parseResult = parseMessage(result);
+        // Check Speech Recognition result
         if (!parseResult.first) {
+            // Unsuccessful
+            Log.d(LOG_TAG, "processResult: Unsuccessful");
+            // TODO: toast
+            enableRecordControl();
             return;
         }
+        Log.d(LOG_TAG, "processResult: Successful");
 
         String message = parseResult.second;
-        Toast.makeText(this, "Recognized: " + message, Toast.LENGTH_SHORT).show();
+        Log.d(LOG_TAG,"processResult: Recognized: " + message);
+        runOnUiThread(() -> {
+            messages.add(new UserChatMessage(message));
+            chatAdapter.notifyDataSetChanged();
+        });
 
-        this.progressSection.setVisibility(View.VISIBLE);
-        this.mainContent.setAlpha(0.5f);
-        this.mainContent.setEnabled(false);
+        showLoadingIndicator();
 
-        Toast.makeText(this, "Sending request...", Toast.LENGTH_SHORT).show();
-        this.assistantService.SendMessageForResponse(message).thenAccept(response -> {
-            runOnUiThread(() -> Toast.makeText(this, "Got response!", Toast.LENGTH_SHORT).show());
+        Log.d(LOG_TAG, "processResult: Sending request...");
+        this.assistantService.sendMessageForResponse(message).thenAccept(response -> {
+            Log.d(LOG_TAG,  "Got response!");
             // TODO: improve messages and move to strings
-            if (!response.IsSuccessful()) {
+            if (!response.isSuccessful()) {
+                Log.d(LOG_TAG, "processResult: Sending request failed: " + response);
                 runOnUiThread(() -> Toast.makeText(this, "Something went wrong, please try again later...", Toast.LENGTH_SHORT).show());
+                enableRecordControl();
                 return;
             }
 
-            String responseMessage = response.Message();
+            String responseMessage = response.getMessage();
             runOnUiThread(() -> {
-                Toast.makeText(this, "Response: " + responseMessage, Toast.LENGTH_SHORT).show();
-                txtResponse.setText(responseMessage);
+                Log.d(LOG_TAG, "processResult: Response: " + responseMessage);
+                messages.add(new AssistIAChatMessage(responseMessage));
+                chatAdapter.notifyDataSetChanged();
             });
-            synthesizeSpeech(responseMessage);
+            Log.d(LOG_TAG, "processResult: Invoking `synthesizeSpeech");
+            this.lastSynthesizeSucceeded = synthesizeSpeech(responseMessage);
         });
+    }
+
+    private void showLoadingIndicator() {
+        this.progressSection.setVisibility(View.VISIBLE);
+        this.mainContent.setAlpha(0.5f);
+        this.mainContent.setEnabled(false);
+    }
+
+    private void enableRecordControl() {
+        setRecordControlEnabledStatus(true);
+    }
+
+    private void disableRecordControl() {
+        setRecordControlEnabledStatus(false);
     }
 
     private Pair<Boolean, String> parseMessage(ActivityResult result) {
@@ -176,61 +334,35 @@ public class MainActivity extends AppCompatActivity {
         return new Pair<>(true, message);
     }
 
-    private void synthesizeSpeech(String message) {
-        audioFile = new File(getExternalFilesDir(null), "speech_output.wav");
-        textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                // Speech synthesis started
-            }
+    private boolean synthesizeSpeech(String message) {
+        Log.d(LOG_TAG, "synthesizeSpeech: Started");
 
-            @Override
-            public void onDone(String utteranceId) {
+        String filename = generateWavFileName();
+        audioFile = new File(getExternalFilesDir(null), filename);
+        Log.d(LOG_TAG, "synthesizeSpeech: Audio file created");
 
-                // Speech synthesis complete, start playback
-                runOnUiThread(() -> {
-                    // Hide loading indicator and restore content
-                    progressSection.setVisibility(View.GONE);
-                    mainContent.setAlpha(1.0f);
-                    mainContent.setEnabled(true);
-                    try {
-                        mediaPlayer.setDataSource(audioFile.getAbsolutePath());
-                        mediaPlayer.prepare();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    if (speakAsap) {
-                        mediaPlayer.start();
-                    }
-
-                });
-            }
-
-            @Override
-            public void onError(String utteranceId) {
-                // Handle errors if needed
-                runOnUiThread(() -> {
-                    // Hide loading indicator and restore content
-                    progressSection.setVisibility(View.GONE);
-                    mainContent.setAlpha(1.0f);
-                    mainContent.setEnabled(true);
-                });
-            }
-        });
         int result = textToSpeech.synthesizeToFile(message, null, audioFile, "TTS_FILE");
-
         if (result != TextToSpeech.SUCCESS) {
+            Log.d(LOG_TAG, "synthesizeSpeech: Synthesize to file failed");
             runOnUiThread(() -> Toast.makeText(this, "Error synthesizing speech", Toast.LENGTH_SHORT).show());
+            return false;
         }
+        Log.d(LOG_TAG, "synthesizeSpeech: Synthesize to file succeeded");
+        return true;
+    }
+
+    public static String generateWavFileName() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
+        String timestamp = sdf.format(new Date());
+        return timestamp + ".wav";
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
+        if (mediaPlayerForLastMessage != null) {
+            mediaPlayerForLastMessage.release();
+            mediaPlayerForLastMessage = null;
         }
     }
 }

@@ -8,11 +8,11 @@ public class AssistantResponse implements IAssistantResponse {
     private final boolean isSuccessful;
     private final String message;
 
-    public boolean IsSuccessful() {
+    public boolean isSuccessful() {
         return isSuccessful;
     }
 
-    public String Message() {
+    public String getMessage() {
         return message;
     }
 
@@ -27,15 +27,15 @@ public class AssistantResponse implements IAssistantResponse {
         this.message = String.format("There was an error reaching the API. Status Code: %d", statusCode);
     }
 
-    public static IAssistantResponse OkResponse(String responseText) {
+    public static IAssistantResponse okResponse(String responseText) {
         return new AssistantResponse(responseText, true);
     }
 
-    public static IAssistantResponse HttpErrorResponse(int statusCode) {
+    public static IAssistantResponse httpErrorResponse(int statusCode) {
         return new AssistantResponse(statusCode);
     }
 
-    public static IAssistantResponse InternalErrorResponse(String responseText) {
+    public static IAssistantResponse internalErrorResponse(String responseText) {
         return new AssistantResponse(responseText, false);
     }
 }

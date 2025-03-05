@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AssistIA</string>
+    <string name="speak_asap">Reproducir automáticamente</string>
+    <string name="tap_to_record">Presione para hablar</string>
+    <string name="speech_recognition_not_supported">Reconocimiento de voz no soportado!</string>
+    <string name="speak_now">Hable ahora...</string>
+    <string name="processing">Procesando...</string>
+    <string name="play">Reproducir</string>
+    <string name="pause">Pausar</string>
+    <string name="stop">Detener</string>
+</resources>

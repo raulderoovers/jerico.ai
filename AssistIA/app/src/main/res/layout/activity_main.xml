@@ -38,7 +38,10 @@
             android:contentDescription="@string/tap_to_record"
             android:background="@drawable/rounded_button"
             android:src="@android:drawable/ic_btn_speak_now"
-            app:tint="@android:color/white"/>
+            android:scaleType="fitCenter"
+            android:padding="20dp"
+            android:adjustViewBounds="true"
+            app:tint="@color/btn_playback_tint"/>
 
         <TextView
             android:id="@+id/txt_tap_to_record"
@@ -68,9 +71,12 @@
                 android:layout_columnWeight="1"
                 android:layout_margin="18dp"
                 android:contentDescription="@string/play"
+                android:enabled="false"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_play"
-                app:tint="@android:color/white"/>
+                android:scaleType="fitCenter"
+                android:padding="20dp"
+                app:tint="@color/btn_playback_tint"/>
 
             <ImageButton
                 android:id="@+id/btn_pause"
@@ -79,10 +85,13 @@
                 android:layout_width="0dp"
                 android:layout_columnWeight="1"
                 android:layout_margin="18dp"
-                android:contentDescription="@string/play"
+                android:contentDescription="@string/pause"
+                android:enabled="false"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_pause"
-                app:tint="@android:color/white"/>
+                android:scaleType="fitCenter"
+                android:padding="20dp"
+                app:tint="@color/btn_playback_tint"/>
 
             <ImageButton
                 android:id="@+id/btn_stop"
@@ -91,24 +100,20 @@
                 android:layout_width="0dp"
                 android:layout_columnWeight="1"
                 android:layout_margin="18dp"
-                android:contentDescription="@string/play"
+                android:contentDescription="@string/stop"
+                android:enabled="false"
                 android:background="@drawable/rounded_button"
                 android:src="@drawable/ic_stop"
-                app:tint="@android:color/white"/>
+                android:scaleType="fitCenter"
+                android:padding="20dp"
+                app:tint="@color/btn_playback_tint"/>
 
         </GridLayout>
 
-        <ScrollView
+        <ListView
+            android:id="@+id/lvw_chat"
             android:layout_width="match_parent"
-            android:layout_height="400dp"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <TextView
-                android:id="@+id/txt_response"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-        </ScrollView>
+            android:layout_height="400dp"/>
 
     </LinearLayout>
 

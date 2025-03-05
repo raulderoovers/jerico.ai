@@ -10,3 +10,4 @@ Jerico AI App
   * https://app.uizard.io/prototypes/nRydPyJKdMh0oX79w6WG
 
 # Trello
+* https://trello.com/b/MWvINm9f/assistia-board

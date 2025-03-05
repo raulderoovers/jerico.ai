@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -30,18 +29,18 @@ public class MistralAIService implements IAssistantService {
     }
 
     @Override
-    public CompletableFuture<IAssistantResponse> SendMessageForResponse(String message) {
+    public CompletableFuture<IAssistantResponse> sendMessageForResponse(String message) {
         Request request = createRequest(message);
         return CompletableFuture.supplyAsync(() -> {
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseText = parseResponse(response.body().string());
-                    return AssistantResponse.OkResponse(responseText);
+                    return AssistantResponse.okResponse(responseText);
                 } else {
-                    return AssistantResponse.HttpErrorResponse(response.code());
+                    return AssistantResponse.httpErrorResponse(response.code());
                 }
             } catch (Exception e) {
-                return AssistantResponse.InternalErrorResponse(e.getMessage());
+                return AssistantResponse.internalErrorResponse(e.getMessage());
             }
         });
     }

@@ -4,6 +4,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IAssistantService {
 
-    CompletableFuture<IAssistantResponse> SendMessageForResponse(String message);
+    CompletableFuture<IAssistantResponse> sendMessageForResponse(String message);
 
 }
