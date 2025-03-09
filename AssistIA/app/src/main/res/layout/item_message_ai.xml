@@ -1,16 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:background="@drawable/message_ai_background"
     android:gravity="start"
     android:padding="8dp">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:textAlignment="center"
+        android:padding="8dp">
+
+        <!-- Play/Pause Button -->
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/play"
+            android:src="@android:drawable/ic_media_play"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/black" />
+
+        <!-- SeekBar for Progress -->
+        <SeekBar
+            android:id="@+id/audioSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingTop="10dp"/>
+
+        <!-- Time Progress -->
+        <TextView
+            android:id="@+id/audioProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_time_progress"
+            android:textSize="14sp"
+            android:paddingStart="8dp"
+            android:paddingTop="10dp"
+            tools:ignore="RtlSymmetry" />
+
+    </LinearLayout>
+
+    <!-- Text Message -->
     <TextView
         android:id="@+id/textMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/message_ai_background"
         android:padding="10dp"
         android:textColor="@android:color/black" />
+
 </LinearLayout>

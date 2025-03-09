@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -41,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = "AssistIA-MainActivity"; // Define a TAG for logging
@@ -144,6 +147,9 @@ public class MainActivity extends AppCompatActivity {
             public void onDone(String utteranceId) {
                 // Speech synthesis complete, start playback
                 runOnUiThread(() -> {
+                    // TODO: improve
+                    Optional<BaseChatMessage> messageOpt = messages.stream().filter(x -> x instanceof AssistIAChatMessage && ((AssistIAChatMessage)x).getUtteranceId().equals(utteranceId)).findFirst();
+                    AssistIAChatMessage aiMessage = (AssistIAChatMessage)messageOpt.get();
                     boolean ok = false;
                     try {
                         // TODO: add to latest message with play and pause icons!
@@ -159,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
                     enableRecordControl();
                     hideLoadingIndicator();
                     if (ok && lastSynthesizeSucceeded) {
+                        aiMessage.setMediaPlayer(mediaPlayerForLastMessage);
                         enablePlaybackControls();
 
                         if(speakAsap) {
@@ -203,6 +210,17 @@ public class MainActivity extends AppCompatActivity {
         mainContent.setEnabled(true);
     }
 
+    // TODO: refactor! this should be a pipeline
+    // 1. Disable controls
+    // 2. Start Speech Recognition Intent
+    //    a. Ok:
+    //       1. lock ui and show loading indicator
+    //       2. send http request
+    //          a. Ok: send text to speech intent
+    //             1. Ok: add message including audio, enable all controls, hide loading indicator and trigger play if enabled
+    //             2. Error: log & display error, enable tap to record, enable ui and hide loading indicator
+    //          b. Error: log & display error, enable tap to record, enable ui and hide loading indicator
+    //    b. Error: log & display error, enable tap to record
     private void startSpeechRecognition() {
         // Disable buttons until action finishes
         Log.d(LOG_TAG, "startSpeechRecognition: Started");
@@ -290,13 +308,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             String responseMessage = response.getMessage();
+            AssistIAChatMessage iaMessage = new AssistIAChatMessage(responseMessage);
             runOnUiThread(() -> {
                 Log.d(LOG_TAG, "processResult: Response: " + responseMessage);
-                messages.add(new AssistIAChatMessage(responseMessage));
+                messages.add(iaMessage);
                 chatAdapter.notifyDataSetChanged();
             });
             Log.d(LOG_TAG, "processResult: Invoking `synthesizeSpeech");
-            this.lastSynthesizeSucceeded = synthesizeSpeech(responseMessage);
+            this.lastSynthesizeSucceeded = synthesizeSpeech(iaMessage);
         });
     }
 
@@ -334,14 +353,16 @@ public class MainActivity extends AppCompatActivity {
         return new Pair<>(true, message);
     }
 
-    private boolean synthesizeSpeech(String message) {
+    private boolean synthesizeSpeech(AssistIAChatMessage message) {
         Log.d(LOG_TAG, "synthesizeSpeech: Started");
 
         String filename = generateWavFileName();
+        String utteranceId = UUID.randomUUID().toString();
+        message.setUtteranceId(utteranceId);
         audioFile = new File(getExternalFilesDir(null), filename);
         Log.d(LOG_TAG, "synthesizeSpeech: Audio file created");
 
-        int result = textToSpeech.synthesizeToFile(message, null, audioFile, "TTS_FILE");
+        int result = textToSpeech.synthesizeToFile(message.getMessage(), null, audioFile, utteranceId);
         if (result != TextToSpeech.SUCCESS) {
             Log.d(LOG_TAG, "synthesizeSpeech: Synthesize to file failed");
             runOnUiThread(() -> Toast.makeText(this, "Error synthesizing speech", Toast.LENGTH_SHORT).show());
