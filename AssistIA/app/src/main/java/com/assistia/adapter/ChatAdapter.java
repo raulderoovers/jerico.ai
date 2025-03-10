@@ -2,6 +2,7 @@ package com.assistia.adapter;
 
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,33 +61,25 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         BaseChatMessage message = messages.get(position);
+        ViewHolder holder;
 
         if (convertView == null) {
             LayoutInflater inflater = LayoutInflater.from(context);
             if (message.isUser()) {
                 convertView = inflater.inflate(R.layout.item_message_user, parent, false);
+                holder = new ViewHolder();
             } else {
                 convertView = inflater.inflate(R.layout.item_message_ai, parent, false);
+                holder = new AudioMessageViewHolder();
             }
 
-            if (message.isUser()) {
-                ViewHolder holder = new ViewHolder();
-                holder.textMessage = convertView.findViewById(R.id.textMessage);
-                convertView.setTag(holder);
-            } else {
-                AudioMessageViewHolder holder = new AudioMessageViewHolder(convertView);
-                holder.textMessage = convertView.findViewById(R.id.textMessage);
-                convertView.setTag(holder);
-            }
-        } else {
-            if (message.isUser()) {
-                ViewHolder holder = (ViewHolder) convertView.getTag();
-                holder.textMessage.setText(message.getMessage());
-            } else {
-                AudioMessageViewHolder holder = (AudioMessageViewHolder) convertView.getTag();
-                holder.textMessage.setText(message.getMessage());
-            }
+            convertView.setTag(holder);
+            holder.textMessage = convertView.findViewById(R.id.textMessage);
         }
+         else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+        holder.textMessage.setText(message.getMessage());
         return convertView;
     }
 
@@ -94,21 +87,18 @@ public class ChatAdapter extends BaseAdapter {
         TextView textMessage;
     }
 
-    private class AudioMessageViewHolder extends RecyclerView.ViewHolder {
+    private static class AudioMessageViewHolder extends ViewHolder {
         private ImageButton btnPlayPause;
         private SeekBar audioSeekBar;
         private TextView audioProgress;
         private MediaPlayer mediaPlayer;
         private Handler handler = new Handler();
-        private TextView textMessage;
         private boolean isPlaying = false;
 
-        public AudioMessageViewHolder(@NonNull View itemView) {
-            super(itemView);
-
-            btnPlayPause = itemView.findViewById(R.id.btnPlayPause);
-            audioSeekBar = itemView.findViewById(R.id.audioSeekBar);
-            audioProgress = itemView.findViewById(R.id.audioProgress);
+        public AudioMessageViewHolder() {
+            //btnPlayPause = itemView.findViewById(R.id.btnPlayPause);
+            //audioSeekBar = itemView.findViewById(R.id.audioSeekBar);
+            //audioProgress = itemView.findViewById(R.id.audioProgress);
         }
 
         public void bind(String audioFilePath) {
@@ -118,7 +108,7 @@ public class ChatAdapter extends BaseAdapter {
                 mediaPlayer.setDataSource(audioFilePath);
                 mediaPlayer.prepare();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("", e.getMessage(), e);
             }
 
             // Set SeekBar Max Value

@@ -52,68 +52,11 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <GridLayout
-            android:id="@+id/grd_media_controller"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:rowCount="1"
-            android:columnCount="3"
-            android:alignmentMode="alignMargins"
-            android:useDefaultMargins="true"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
-
-            <ImageButton
-                android:id="@+id/btn_play"
-                android:layout_row="0"
-                android:layout_column="0"
-                android:layout_width="0dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="18dp"
-                android:contentDescription="@string/play"
-                android:enabled="false"
-                android:background="@drawable/rounded_button"
-                android:src="@android:drawable/ic_media_play"
-                android:scaleType="fitCenter"
-                android:padding="20dp"
-                app:tint="@color/btn_playback_tint"/>
-
-            <ImageButton
-                android:id="@+id/btn_pause"
-                android:layout_row="0"
-                android:layout_column="1"
-                android:layout_width="0dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="18dp"
-                android:contentDescription="@string/pause"
-                android:enabled="false"
-                android:background="@drawable/rounded_button"
-                android:src="@android:drawable/ic_media_pause"
-                android:scaleType="fitCenter"
-                android:padding="20dp"
-                app:tint="@color/btn_playback_tint"/>
-
-            <ImageButton
-                android:id="@+id/btn_stop"
-                android:layout_row="0"
-                android:layout_column="2"
-                android:layout_width="0dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="18dp"
-                android:contentDescription="@string/stop"
-                android:enabled="false"
-                android:background="@drawable/rounded_button"
-                android:src="@drawable/ic_stop"
-                android:scaleType="fitCenter"
-                android:padding="20dp"
-                app:tint="@color/btn_playback_tint"/>
-
-        </GridLayout>
-
         <ListView
             android:id="@+id/lvw_chat"
             android:layout_width="match_parent"
-            android:layout_height="400dp"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
 
     </LinearLayout>
 
