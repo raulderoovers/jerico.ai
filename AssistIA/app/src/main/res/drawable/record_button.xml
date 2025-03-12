@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Default state (gradient) -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="50dp"/> <!-- Rounded button -->
+            <gradient
+                android:startColor="#3742fa"
+                android:endColor="#0abde3"
+                android:angle="45"/>
+            <padding android:top="10dp" android:bottom="10dp"/>
+        </shape>
+    </item>
+    <!-- Pressed state (glowing effect) -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="50dp"/>
+            <gradient
+                android:startColor="#0abde3"
+                android:endColor="#3742fa"
+                android:angle="45"/>
+            <stroke android:width="4dp" android:color="#48dbfb"/> <!-- Glowing border -->
+        </shape>
+    </item>
+</selector>
