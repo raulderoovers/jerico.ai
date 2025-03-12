@@ -6,11 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/message_ai_background"
-    android:gravity="start"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="32dp"
-    android:maxWidth="220dp"
-    android:padding="8dp">
+    android:gravity="start">
 
     <LinearLayout
         android:layout_width="match_parent"

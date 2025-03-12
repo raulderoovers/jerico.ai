@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="blue_light">#1367C6</color>  <!-- Light blue for primary elements -->
+    <color name="blue_dark">#0A192F</color>   <!-- Dark blue for background -->
+    <color name="neon_blue">#00C8FF</color>   <!-- Accent neon blue -->
+    <color name="white">#FFFFFF</color>       <!-- Text color -->
+    <color name="transparent">#00000000</color> <!-- Transparent background -->
 </resources>
