@@ -1,17 +1,15 @@
 package com.assistia.model;
 
+import android.app.Activity;
 import android.media.MediaPlayer;
 import android.speech.tts.UtteranceProgressListener;
-import android.util.Log;
 
 import com.assistia.contract.ISpeechSynthesizerService;
-import com.assistia.contract.ISynthesizeSpeechResult;
+import com.assistia.contract.ISynthesizeSpeechResultListener;
+import com.assistia.http.SynthesizeSpeechResult;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class AssistIAChatMessage extends BaseChatMessage {
     private static final String LOG_TAG_MASK = "AssistIA-AssistIAChatMessage-"; // Define a TAG for logging
@@ -20,6 +18,7 @@ public class AssistIAChatMessage extends BaseChatMessage {
     String utteranceId;
     File audioFile;
     MediaPlayer mediaPlayer;
+    ISynthesizeSpeechResultListener resultListener;
 
     public String getUtteranceId() {
         if (this.utteranceId == null)
@@ -28,17 +27,36 @@ public class AssistIAChatMessage extends BaseChatMessage {
         return this.utteranceId;
     }
 
-    public AssistIAChatMessage(ISpeechSynthesizerService speechSynthesizerService, String message) {
+    private Activity activity;
+    private ISpeechSynthesizerService speechSynthesizerService;
+
+    public AssistIAChatMessage(Activity activity, ISpeechSynthesizerService speechSynthesizerService, String message) {
         super(message, false);
 
-        //this.utteranceId = UUID.randomUUID().toString();
+        this.activity = activity;
+        this.speechSynthesizerService = speechSynthesizerService;
+        this.utteranceId = UUID.randomUUID().toString();
         //this.LOG_TAG = LOG_TAG_MASK + this.utteranceId;
         //this.mediaPlayer = new MediaPlayer();
 
-        //speechSynthesizerService.SynthesizeSpeech(message, this.utteranceId, new MyListener());
+        this.speechSynthesizerService.SynthesizeSpeech(message, this.utteranceId, new MyListener(this));
+    }
+
+    public void bindViewHolder(ISynthesizeSpeechResultListener resultListener) {
+        this.resultListener = resultListener;
+    }
+
+    public void onDone(String utteranceId) {
+        File auditoFile = this.speechSynthesizerService.GetAudioFile(utteranceId);
+        this.activity.runOnUiThread(() -> this.resultListener.onResult(SynthesizeSpeechResult.okResult(auditoFile)));
     }
 
     private class MyListener extends UtteranceProgressListener {
+        AssistIAChatMessage message;
+        private MyListener(AssistIAChatMessage message) {
+            this.message = message;
+        }
+
         @Override
         public void onStart(String utteranceId) {
 
@@ -46,7 +64,7 @@ public class AssistIAChatMessage extends BaseChatMessage {
 
         @Override
         public void onDone(String utteranceId) {
-
+            this.message.onDone(utteranceId);
         }
 
         @Override

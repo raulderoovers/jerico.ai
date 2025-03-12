@@ -3,7 +3,6 @@ package com.assistia;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -18,15 +17,11 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultCaller;
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 
 import com.assistia.adapter.ChatAdapter;
 import com.assistia.contract.IAssistantService;
@@ -36,16 +31,14 @@ import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
-import com.assistia.service.SpeechRecognitionService;
-import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
+import com.assistia.service.mock.MockSpeechSynthesizerService;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String LOG_TAG = "AssistIA-MainActivity"; // Define a TAG for logging
+    private static final String LOG_TAG = "AssistIA-MainActivity";
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     Switch swtSpeakAsap;
     ImageButton btnTapToRecord;
@@ -108,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
         String apiKey = BuildConfig.ASSISTANT_SERVICE_KEY;
         this.assistantService = new MistralAIService(apiUrl, apiKey);
 
-        this.speechSynthesizerService = new SpeechSynthesizerService(this);
+        //this.speechSynthesizerService = new SpeechSynthesizerService(this);
+        this.speechSynthesizerService = new MockSpeechSynthesizerService(this);
 
         Log.d(LOG_TAG, "onCreate: Started OK!");
     }
@@ -143,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "processResult: Unsuccessful");
             runOnUiThread(() -> {
                 Toast.makeText(this, R.string.something_went_wrong_try_again_later, Toast.LENGTH_SHORT).show();
+                this.btnTapToRecord.setEnabled(true);
             });
             return;
         }
@@ -160,18 +155,23 @@ public class MainActivity extends AppCompatActivity {
         this.assistantService.sendMessageForResponse(message).thenAccept(response -> {
             Log.d(LOG_TAG,  "processResult: Got response!");
             if (!response.isSuccessful()) {
-                Log.d(LOG_TAG, "processResult: Sending request failed: " + response);
-                runOnUiThread(() -> Toast.makeText(this, R.string.something_went_wrong_try_again_later, Toast.LENGTH_SHORT).show());
+                Log.d(LOG_TAG, "processResult: Sending request failed: " + response.getMessage());
+                runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.something_went_wrong_try_again_later, Toast.LENGTH_SHORT).show();
+                    hideLoadingIndicator();
+                    this.btnTapToRecord.setEnabled(true);
+                });
                 return;
             }
 
             String responseMessage = response.getMessage();
-            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this.speechSynthesizerService, responseMessage);
+            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this, this.speechSynthesizerService, responseMessage);
             runOnUiThread(() -> {
                 Log.d(LOG_TAG, "processResult: Sending request succeeded: " + responseMessage);
                 messages.add(iaMessage);
                 chatAdapter.notifyDataSetChanged();
                 hideLoadingIndicator();
+                this.btnTapToRecord.setEnabled(true);
             });
             Log.d(LOG_TAG, "processResult: Invoking `synthesizeSpeech");
         });

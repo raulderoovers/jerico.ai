@@ -23,7 +23,8 @@ public class MockSpeechRecognitionService implements ISpeechRecognitionService {
                 throw new RuntimeException(e);
             }
             Intent intent = new Intent();
-            intent.setData(Uri.parse("Hello!"));
+            //intent.setData(Uri.parse("Hello!"));
+            intent.setData(Uri.parse("Hello darkness, my old friend. I've come to talk with you again. Because a vision softly creeping. Left its seeds while I was sleeping"));
             return new ActivityResult(Activity.RESULT_OK, intent);
         }).thenAccept(processResult::onActivityResult);
     }

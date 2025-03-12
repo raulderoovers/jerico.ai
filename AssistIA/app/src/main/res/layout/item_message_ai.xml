@@ -7,6 +7,9 @@
     android:orientation="vertical"
     android:background="@drawable/message_ai_background"
     android:gravity="start"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="32dp"
+    android:maxWidth="220dp"
     android:padding="8dp">
 
     <LinearLayout
@@ -24,7 +27,15 @@
             android:contentDescription="@string/play"
             android:src="@android:drawable/ic_media_play"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:visibility="gone"
             app:tint="@color/black" />
+
+        <ProgressBar
+            android:id="@+id/ttsProgressBar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            style="@android:style/Widget.ProgressBar.Large"
+            android:layout_gravity="center"/>
 
         <!-- SeekBar for Progress -->
         <SeekBar
@@ -32,7 +43,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingTop="10dp"/>
+            android:paddingTop="10dp"
+            android:textColor="@color/black"
+            android:progressTint="#2196F3"
+            android:thumbTint="#002F50"
+            android:progressBackgroundTint="#424957"/>
 
         <!-- Time Progress -->
         <TextView
@@ -43,6 +58,7 @@
             android:textSize="14sp"
             android:paddingStart="8dp"
             android:paddingTop="10dp"
+            android:textColor="@color/black"
             tools:ignore="RtlSymmetry" />
 
     </LinearLayout>

@@ -65,6 +65,11 @@ public class SpeechSynthesizerService extends UtteranceProgressListener implemen
         return false;
     }
 
+    @Override
+    public File GetAudioFile(String utteranceId) {
+        return null;
+    }
+
     private static String generateWavFileName() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
         String timestamp = sdf.format(new Date());

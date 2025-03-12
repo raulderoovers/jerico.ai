@@ -11,3 +11,6 @@ Jerico AI App
 
 # Trello
 * https://trello.com/b/MWvINm9f/assistia-board
+
+# TODO
+* Maybe force language on startup?

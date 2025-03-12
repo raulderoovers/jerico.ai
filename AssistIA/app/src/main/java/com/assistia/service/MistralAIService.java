@@ -48,7 +48,9 @@ public class MistralAIService implements IAssistantService {
     private Request createRequest(String message) {
         String payloadMask = "{\n" +
                 "    \"model\": \"mistral-small\",\n" +
-                "    \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}]\n" +
+                "    \"messages\": [ " +
+                //"       {\"role\": \"system\", \"content\": \"You are an AI assistant that only responds in Spanish. If the user writes in another language, translate their message and respond in Spanish.\"}, " +
+                "       {\"role\": \"user\", \"content\": \"%s\"}]\n" +
                 "}";
         String payload = String.format(payloadMask, message);
         RequestBody body = RequestBody.create(payload, mediaTypeJson);

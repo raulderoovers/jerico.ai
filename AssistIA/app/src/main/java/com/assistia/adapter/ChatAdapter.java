@@ -8,13 +8,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.assistia.R;
+import com.assistia.contract.ISynthesizeSpeechResult;
+import com.assistia.contract.ISynthesizeSpeechResultListener;
+import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
 
 import java.io.IOException;
@@ -70,7 +71,15 @@ public class ChatAdapter extends BaseAdapter {
                 holder = new ViewHolder();
             } else {
                 convertView = inflater.inflate(R.layout.item_message_ai, parent, false);
-                holder = new AudioMessageViewHolder();
+                AudioMessageViewHolder audioHolder = new AudioMessageViewHolder((AssistIAChatMessage) message);
+                audioHolder.btnPlayPause = convertView.findViewById(R.id.btnPlayPause);
+                audioHolder.btnPlayPause.setEnabled(false);
+                audioHolder.ttsProgressBar = convertView.findViewById(R.id.ttsProgressBar);
+                audioHolder.audioProgress = convertView.findViewById(R.id.audioProgress);
+                audioHolder.audioProgress.setEnabled(false);
+                audioHolder.audioSeekBar = convertView.findViewById(R.id.audioSeekBar);
+                audioHolder.audioSeekBar.setEnabled(false);
+                holder = audioHolder;
             }
 
             convertView.setTag(holder);
@@ -87,18 +96,17 @@ public class ChatAdapter extends BaseAdapter {
         TextView textMessage;
     }
 
-    private static class AudioMessageViewHolder extends ViewHolder {
+    private static class AudioMessageViewHolder extends ViewHolder implements ISynthesizeSpeechResultListener {
         private ImageButton btnPlayPause;
         private SeekBar audioSeekBar;
+        private ProgressBar ttsProgressBar;
         private TextView audioProgress;
         private MediaPlayer mediaPlayer;
         private Handler handler = new Handler();
         private boolean isPlaying = false;
 
-        public AudioMessageViewHolder() {
-            //btnPlayPause = itemView.findViewById(R.id.btnPlayPause);
-            //audioSeekBar = itemView.findViewById(R.id.audioSeekBar);
-            //audioProgress = itemView.findViewById(R.id.audioProgress);
+        public AudioMessageViewHolder(AssistIAChatMessage message) {
+            message.bindViewHolder(this);
         }
 
         public void bind(String audioFilePath) {
@@ -122,6 +130,8 @@ public class ChatAdapter extends BaseAdapter {
                     playAudio();
                 }
             });
+
+            this.updateProgressText(this.mediaPlayer.getDuration());
 
             // SeekBar Change Listener
             audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -147,21 +157,21 @@ public class ChatAdapter extends BaseAdapter {
 
         private void playAudio() {
             mediaPlayer.start();
-            //btnPlayPause.setImageResource(R.drawable.ic_mic_pause);
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
             isPlaying = true;
             updateSeekBar();
         }
 
         private void pauseAudio() {
             mediaPlayer.pause();
-            //btnPlayPause.setImageResource(R.drawable.ic_play);
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
             isPlaying = false;
         }
 
         private void resetAudio() {
-            //btnPlayPause.setImageResource(R.drawable.ic_play);
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
             audioSeekBar.setProgress(0);
-            audioProgress.setText(R.string.default_time_progress);
+            this.updateProgressText(this.mediaPlayer.getDuration());
             isPlaying = false;
         }
 
@@ -179,6 +189,17 @@ public class ChatAdapter extends BaseAdapter {
             int seconds = (progress / 1000) % 60;
             int minutes = (progress / 1000) / 60;
             audioProgress.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
+        }
+
+        @Override
+        public void onResult(ISynthesizeSpeechResult result) {
+            this.bind(result.getAudioFile().getAbsolutePath());
+
+            this.btnPlayPause.setEnabled(true);
+            this.btnPlayPause.setVisibility(View.VISIBLE);
+            this.ttsProgressBar.setVisibility(View.GONE);
+            this.audioProgress.setEnabled(true);
+            this.audioSeekBar.setEnabled(true);
         }
     }
 
