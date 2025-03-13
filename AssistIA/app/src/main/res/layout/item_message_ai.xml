@@ -26,8 +26,8 @@
             <!-- Play/Pause Button -->
             <ImageButton
                 android:id="@+id/btnPlayPause"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:contentDescription="@string/play"
                 android:src="@android:drawable/ic_media_play"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -36,8 +36,8 @@
 
             <ProgressBar
                 android:id="@+id/ttsProgressBar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 style="@android:style/Widget.ProgressBar.Large"
                 android:layout_gravity="center"/>
 
@@ -47,7 +47,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:paddingTop="10dp"
+                android:paddingTop="5dp"
                 android:textColor="@color/black"
                 android:progressTint="#2196F3"
                 android:thumbTint="#002F50"
@@ -61,7 +61,7 @@
                 android:text="@string/default_time_progress"
                 android:textSize="14sp"
                 android:paddingStart="8dp"
-                android:paddingTop="10dp"
+                android:paddingTop="5dp"
                 android:textColor="@color/black"
                 tools:ignore="RtlSymmetry" />
 
@@ -75,6 +75,7 @@
             android:padding="10dp"
             android:maxWidth="32dp"
             android:textColor="@android:color/black" />
+        <!-- android:textColor="#00eaff" /> -->
 
     </LinearLayout>
 
