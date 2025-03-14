@@ -8,19 +8,14 @@ import android.util.Pair;
 
 import com.assistia.R;
 import com.assistia.contract.ISpeechSynthesizerService;
-import com.assistia.contract.ISynthesizeSpeechResult;
-import com.assistia.http.SynthesizeSpeechResult;
-import com.assistia.listener.TextToSpeechUtteranceProgressListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class SpeechSynthesizerService extends UtteranceProgressListener implements ISpeechSynthesizerService {
     private static final String LOG_TAG = "AssistIA-SpeechSynthesizer"; // Define a TAG for logging
@@ -67,7 +62,7 @@ public class SpeechSynthesizerService extends UtteranceProgressListener implemen
 
     @Override
     public File GetAudioFile(String utteranceId) {
-        return null;
+        return Objects.requireNonNull(ttsCache.get(utteranceId)).second;
     }
 
     private static String generateWavFileName() {

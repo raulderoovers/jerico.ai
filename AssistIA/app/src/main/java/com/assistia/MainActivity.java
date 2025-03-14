@@ -31,6 +31,7 @@ import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
+import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
 
