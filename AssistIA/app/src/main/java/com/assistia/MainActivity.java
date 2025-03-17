@@ -17,6 +17,9 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
@@ -31,6 +34,7 @@ import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
+import com.assistia.service.SpeechRecognitionService;
 import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
@@ -95,8 +99,10 @@ public class MainActivity extends AppCompatActivity {
 
         this.speakNowMessage = getString(R.string.speak_now);
 
-        //this.speechRecognitionService = new SpeechRecognitionService(this, this::registerForActivityResult);
-        this.speechRecognitionService = new MockSpeechRecognitionService();
+        //ActivityResultLauncher<Intent> activityLauncher =
+        //    registerForActivityResult(new StartActivityForResult(), this::processResult);
+        //this.speechRecognitionService = new SpeechRecognitionService(this, activityLauncher);
+        this.speechRecognitionService = new MockSpeechRecognitionService(this::processResult);
 
         String apiUrl = BuildConfig.ASSISTANT_SERVICE_URL;
         String apiKey = BuildConfig.ASSISTANT_SERVICE_KEY;
@@ -125,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         this.btnTapToRecord.setEnabled(false);
 
         Log.d(LOG_TAG, "startSpeechRecognition: Calling Speech Recognition Service");
-        this.speechRecognitionService.Run(this::processResult);
+        this.speechRecognitionService.Run();
     }
 
     private void processResult(ActivityResult result) {
