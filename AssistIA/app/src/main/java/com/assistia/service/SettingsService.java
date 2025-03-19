@@ -17,6 +17,7 @@ public class SettingsService {
     public SettingsService(ContextWrapper contextWrapper) {
         this.sharedPreferences = contextWrapper.getSharedPreferences("Settings", MODE_PRIVATE);;
     }
+
     public int getLanguage() {
         return this.sharedPreferences.getInt(languageSettingKey, LanguageHelper.INDEX_LANGUAGE_ENGLISH);
     }

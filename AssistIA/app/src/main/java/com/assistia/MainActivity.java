@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
     ChatAdapter chatAdapter;
     List<BaseChatMessage> messages;
     SettingsService settingsService;
-    LanguageInfo languageInfo;
 
     @SuppressLint({"WrongViewCast", "MissingInflatedId"})
     @Override
@@ -75,8 +74,9 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
 
         this.settingsService = new SettingsService(this);
         int languageId = this.settingsService.getLanguage();
-        this.languageInfo = Settings.Languages.get(languageId);
+        LanguageInfo languageInfo = Settings.Languages.get(languageId);
         assert languageInfo != null;
+        Settings.LanguageInfo = languageInfo;
         LanguageHelper.setLocale(this, languageInfo.getLanguage());
 
         setContentView(R.layout.activity_main);
@@ -96,11 +96,13 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
         Log.d(LOG_TAG, "onCreate: Activity started");
 
         boolean isSpeakAsapOn = this.settingsService.getSpeakAsap();
+        Settings.SpeakAsap = isSpeakAsapOn;
         this.swtSpeakAsap = findViewById(R.id.swt_speak_asap);
         this.swtSpeakAsap.setChecked(isSpeakAsapOn);
         this.swtSpeakAsap.setOnCheckedChangeListener((buttonView, isChecked) -> {
             speakAsap = isChecked;
             this.settingsService.setSpeakAsap(isChecked);
+            Settings.SpeakAsap = isChecked;
         });
 
         Spinner languageSpinner = findViewById(R.id.spn_language);
@@ -185,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
         });
 
         Log.d(LOG_TAG, "processResult: Sending request...");
-        this.assistantService.sendMessageForResponse(message, this.languageInfo.getLanguageName()).thenAccept(response -> {
+        this.assistantService.sendMessageForResponse(message, Settings.LanguageInfo.getLanguageName()).thenAccept(response -> {
             Log.d(LOG_TAG,  "processResult: Got response!");
             if (!response.isSuccessful()) {
                 Log.d(LOG_TAG, "processResult: Sending request failed: " + response.getMessage());
@@ -198,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
             }
 
             String responseMessage = response.getMessage();
-            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this, this.speechSynthesizerService, responseMessage, this.languageInfo);
+            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this, this.speechSynthesizerService, responseMessage, Settings.LanguageInfo);
             runOnUiThread(() -> {
                 Log.d(LOG_TAG, "processResult: Sending request succeeded: " + responseMessage);
                 messages.add(iaMessage);
@@ -239,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
     @Override
     public void onLanguageChanged(int languageId) {
         this.settingsService.setLanguage(languageId);
+        Settings.LanguageInfo = Settings.Languages.get(languageId);
         this.recreate();
     }
 }

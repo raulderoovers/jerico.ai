@@ -17,6 +17,7 @@ import com.assistia.contract.ISynthesizeSpeechResult;
 import com.assistia.contract.ISynthesizeSpeechResultListener;
 import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
+import com.assistia.model.Settings;
 
 import java.io.IOException;
 import java.util.List;
@@ -200,6 +201,10 @@ public class ChatAdapter extends BaseAdapter {
             this.ttsProgressBar.setVisibility(View.GONE);
             this.audioProgress.setEnabled(true);
             this.audioSeekBar.setEnabled(true);
+
+            if (!Settings.SpeakAsap) return;
+
+            this.playAudio();
         }
     }
 

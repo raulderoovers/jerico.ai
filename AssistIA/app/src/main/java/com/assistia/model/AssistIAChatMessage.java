@@ -27,8 +27,8 @@ public class AssistIAChatMessage extends BaseChatMessage {
         return this.utteranceId;
     }
 
-    private Activity activity;
-    private ISpeechSynthesizerService speechSynthesizerService;
+    private final Activity activity;
+    private final ISpeechSynthesizerService speechSynthesizerService;
 
     public AssistIAChatMessage(Activity activity, ISpeechSynthesizerService speechSynthesizerService, String message, LanguageInfo languageInfo) {
         super(message, false);
@@ -36,10 +36,8 @@ public class AssistIAChatMessage extends BaseChatMessage {
         this.activity = activity;
         this.speechSynthesizerService = speechSynthesizerService;
         this.utteranceId = UUID.randomUUID().toString();
-        //this.LOG_TAG = LOG_TAG_MASK + this.utteranceId;
-        //this.mediaPlayer = new MediaPlayer();
 
-        this.speechSynthesizerService.synthesizeSpeech(message, languageInfo, this.utteranceId, new MyListener(this));
+        this.speechSynthesizerService.synthesizeSpeech(message, languageInfo, this.utteranceId, new SpeechSynthesizerUtteranceProgressListener(this));
     }
 
     public void bindViewHolder(ISynthesizeSpeechResultListener resultListener) {
@@ -47,13 +45,13 @@ public class AssistIAChatMessage extends BaseChatMessage {
     }
 
     public void onDone(String utteranceId) {
-        File auditoFile = this.speechSynthesizerService.getAudioFile(utteranceId);
-        this.activity.runOnUiThread(() -> this.resultListener.onResult(SynthesizeSpeechResult.okResult(auditoFile)));
+        File audioFile = this.speechSynthesizerService.getAudioFile(utteranceId);
+        this.activity.runOnUiThread(() -> this.resultListener.onResult(SynthesizeSpeechResult.okResult(audioFile)));
     }
 
-    private class MyListener extends UtteranceProgressListener {
+    private static class SpeechSynthesizerUtteranceProgressListener extends UtteranceProgressListener {
         AssistIAChatMessage message;
-        private MyListener(AssistIAChatMessage message) {
+        private SpeechSynthesizerUtteranceProgressListener(AssistIAChatMessage message) {
             this.message = message;
         }
 
