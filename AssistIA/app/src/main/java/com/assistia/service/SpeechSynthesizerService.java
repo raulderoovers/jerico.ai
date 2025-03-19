@@ -8,6 +8,7 @@ import android.util.Pair;
 
 import com.assistia.R;
 import com.assistia.contract.ISpeechSynthesizerService;
+import com.assistia.model.LanguageInfo;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -30,7 +31,7 @@ public class SpeechSynthesizerService extends UtteranceProgressListener implemen
         this.textToSpeech = new TextToSpeech(context, status -> {
             // TODO: properly implement languages...
             if (status == TextToSpeech.SUCCESS) {
-                int result = textToSpeech.setLanguage(new Locale("es", "AR")); // Spanish Argentina
+                int result = textToSpeech.setLanguage(new Locale("es", "AR"));
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.d(LOG_TAG, "SpeechSynthesizer: " + this.context.getString(R.string.unsupported_language));
                 }
@@ -42,7 +43,7 @@ public class SpeechSynthesizerService extends UtteranceProgressListener implemen
     }
 
     @Override
-    public boolean SynthesizeSpeech(String message, String utteranceId, UtteranceProgressListener listener) {
+    public void synthesizeSpeech(String message, LanguageInfo languageInfo, String utteranceId, UtteranceProgressListener listener) {
         Log.d(LOG_TAG, "synthesizeSpeech: Started");
 
         String filename = generateWavFileName();
@@ -51,17 +52,17 @@ public class SpeechSynthesizerService extends UtteranceProgressListener implemen
         this.ttsCache.put(utteranceId, new Pair<>(listener, audioFile));
         Log.d(LOG_TAG, "synthesizeSpeech: Audio file created");
 
+        textToSpeech.setLanguage(new Locale(languageInfo.getLanguage(), languageInfo.getCountry()));
         int result = textToSpeech.synthesizeToFile(message, null, audioFile, utteranceId);
         if (result != TextToSpeech.SUCCESS) {
             Log.d(LOG_TAG, "synthesizeSpeech: Synthesize to file failed to initiate");
-            return true;
+            return;
         }
         Log.d(LOG_TAG, "synthesizeSpeech: Synthesize to file initiated successfully");
-        return false;
     }
 
     @Override
-    public File GetAudioFile(String utteranceId) {
+    public File getAudioFile(String utteranceId) {
         return Objects.requireNonNull(ttsCache.get(utteranceId)).second;
     }
 

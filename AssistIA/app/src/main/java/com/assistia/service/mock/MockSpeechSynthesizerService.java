@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.assistia.R;
 import com.assistia.contract.ISpeechSynthesizerService;
+import com.assistia.model.LanguageInfo;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,7 +22,7 @@ public class MockSpeechSynthesizerService implements ISpeechSynthesizerService {
         this.context = context;
     }
     @Override
-    public boolean SynthesizeSpeech(String message, String utteranceId, UtteranceProgressListener listener) {
+    public void synthesizeSpeech(String message, LanguageInfo languageInfo, String utteranceId, UtteranceProgressListener listener) {
         CompletableFuture.supplyAsync(() -> {
             listener.onStart(utteranceId);
             try {
@@ -37,11 +38,10 @@ public class MockSpeechSynthesizerService implements ISpeechSynthesizerService {
             }
             listener.onError(utteranceId);
         });
-        return true;
     }
 
     @Override
-    public File GetAudioFile(String utteranceId) {
+    public File getAudioFile(String utteranceId) {
         return copyRawResourceToFile(R.raw.audio, this.context);
     }
 

@@ -12,14 +12,12 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
@@ -27,22 +25,28 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.assistia.adapter.ChatAdapter;
+import com.assistia.adapter.LanguageSpinnerAdapter;
 import com.assistia.contract.IAssistantService;
 import com.assistia.contract.ISpeechRecognitionService;
 import com.assistia.contract.ISpeechSynthesizerService;
+import com.assistia.contract.ILanguageChangeListener;
+import com.assistia.helper.LanguageHelper;
+import com.assistia.listener.LanguageSpinnerOnItemSelectedListener;
 import com.assistia.model.AssistIAChatMessage;
 import com.assistia.model.BaseChatMessage;
+import com.assistia.model.LanguageInfo;
+import com.assistia.model.Settings;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
-import com.assistia.service.SpeechRecognitionService;
-import com.assistia.service.SpeechSynthesizerService;
+import com.assistia.service.SettingsService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ILanguageChangeListener {
+
     private static final String LOG_TAG = "AssistIA-MainActivity";
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     Switch swtSpeakAsap;
@@ -59,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
     ISpeechSynthesizerService speechSynthesizerService;
     ChatAdapter chatAdapter;
     List<BaseChatMessage> messages;
+    SettingsService settingsService;
+    LanguageInfo languageInfo;
 
     @SuppressLint({"WrongViewCast", "MissingInflatedId"})
     @Override
@@ -66,6 +72,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         EdgeToEdge.enable(this);
+
+        this.settingsService = new SettingsService(this);
+        int languageId = this.settingsService.getLanguage();
+        this.languageInfo = Settings.Languages.get(languageId);
+        assert languageInfo != null;
+        LanguageHelper.setLocale(this, languageInfo.getLanguage());
+
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -82,8 +95,21 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "onCreate: Activity started");
 
+        boolean isSpeakAsapOn = this.settingsService.getSpeakAsap();
         this.swtSpeakAsap = findViewById(R.id.swt_speak_asap);
-        this.swtSpeakAsap.setOnCheckedChangeListener((buttonView, isChecked) -> speakAsap = isChecked);
+        this.swtSpeakAsap.setChecked(isSpeakAsapOn);
+        this.swtSpeakAsap.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            speakAsap = isChecked;
+            this.settingsService.setSpeakAsap(isChecked);
+        });
+
+        Spinner languageSpinner = findViewById(R.id.spn_language);
+        LanguageSpinnerAdapter adapter = new LanguageSpinnerAdapter(this);
+        languageSpinner.setAdapter(adapter);
+        languageSpinner.setSelection(languageId, false);
+
+        LanguageSpinnerOnItemSelectedListener listener = new LanguageSpinnerOnItemSelectedListener(this);
+        languageSpinner.setOnItemSelectedListener(listener);
 
         this.btnTapToRecord = findViewById(R.id.btn_tap_to_record);
         this.btnTapToRecord.setOnClickListener(v -> startSpeechRecognition());
@@ -131,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         this.btnTapToRecord.setEnabled(false);
 
         Log.d(LOG_TAG, "startSpeechRecognition: Calling Speech Recognition Service");
-        this.speechRecognitionService.Run();
+        this.speechRecognitionService.run();
     }
 
     private void processResult(ActivityResult result) {
@@ -159,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Log.d(LOG_TAG, "processResult: Sending request...");
-        this.assistantService.sendMessageForResponse(message).thenAccept(response -> {
+        this.assistantService.sendMessageForResponse(message, this.languageInfo.getLanguageName()).thenAccept(response -> {
             Log.d(LOG_TAG,  "processResult: Got response!");
             if (!response.isSuccessful()) {
                 Log.d(LOG_TAG, "processResult: Sending request failed: " + response.getMessage());
@@ -172,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             String responseMessage = response.getMessage();
-            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this, this.speechSynthesizerService, responseMessage);
+            AssistIAChatMessage iaMessage = new AssistIAChatMessage(this, this.speechSynthesizerService, responseMessage, this.languageInfo);
             runOnUiThread(() -> {
                 Log.d(LOG_TAG, "processResult: Sending request succeeded: " + responseMessage);
                 messages.add(iaMessage);
@@ -208,5 +234,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // TODO: what to destroy?
+    }
+
+    @Override
+    public void onLanguageChanged(int languageId) {
+        this.settingsService.setLanguage(languageId);
+        this.recreate();
     }
 }

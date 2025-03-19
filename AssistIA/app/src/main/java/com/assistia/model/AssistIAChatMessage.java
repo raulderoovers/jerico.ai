@@ -30,7 +30,7 @@ public class AssistIAChatMessage extends BaseChatMessage {
     private Activity activity;
     private ISpeechSynthesizerService speechSynthesizerService;
 
-    public AssistIAChatMessage(Activity activity, ISpeechSynthesizerService speechSynthesizerService, String message) {
+    public AssistIAChatMessage(Activity activity, ISpeechSynthesizerService speechSynthesizerService, String message, LanguageInfo languageInfo) {
         super(message, false);
 
         this.activity = activity;
@@ -39,7 +39,7 @@ public class AssistIAChatMessage extends BaseChatMessage {
         //this.LOG_TAG = LOG_TAG_MASK + this.utteranceId;
         //this.mediaPlayer = new MediaPlayer();
 
-        this.speechSynthesizerService.SynthesizeSpeech(message, this.utteranceId, new MyListener(this));
+        this.speechSynthesizerService.synthesizeSpeech(message, languageInfo, this.utteranceId, new MyListener(this));
     }
 
     public void bindViewHolder(ISynthesizeSpeechResultListener resultListener) {
@@ -47,7 +47,7 @@ public class AssistIAChatMessage extends BaseChatMessage {
     }
 
     public void onDone(String utteranceId) {
-        File auditoFile = this.speechSynthesizerService.GetAudioFile(utteranceId);
+        File auditoFile = this.speechSynthesizerService.getAudioFile(utteranceId);
         this.activity.runOnUiThread(() -> this.resultListener.onResult(SynthesizeSpeechResult.okResult(auditoFile)));
     }
 

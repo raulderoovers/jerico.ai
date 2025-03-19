@@ -32,7 +32,7 @@ public class SpeechRecognitionService implements ISpeechRecognitionService {
     }
 
     @Override
-    public void Run() {
+    public void run() {
         // Create Speech Recognition Intent
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);

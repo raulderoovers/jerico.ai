@@ -29,8 +29,8 @@ public class MistralAIService implements IAssistantService {
     }
 
     @Override
-    public CompletableFuture<IAssistantResponse> sendMessageForResponse(String message) {
-        Request request = createRequest(message);
+    public CompletableFuture<IAssistantResponse> sendMessageForResponse(String message, String language) {
+        Request request = createRequest(message, language);
         return CompletableFuture.supplyAsync(() -> {
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -45,11 +45,11 @@ public class MistralAIService implements IAssistantService {
         });
     }
 
-    private Request createRequest(String message) {
+    private Request createRequest(String message, String language) {
         String payloadMask = "{\n" +
                 "    \"model\": \"mistral-small\",\n" +
                 "    \"messages\": [ " +
-                //"       {\"role\": \"system\", \"content\": \"You are an AI assistant that only responds in Spanish. If the user writes in another language, translate their message and respond in Spanish.\"}, " +
+                "       {\"role\": \"system\", \"content\": \"You are an AI assistant that only responds in " + language + ". If the user writes in another language, translate their message and respond in " + language + ". Do not include language reference in responses. Do not state the response was translated.\"}, " +
                 "       {\"role\": \"user\", \"content\": \"%s\"}]\n" +
                 "}";
         String payload = String.format(payloadMask, message);

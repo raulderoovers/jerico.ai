@@ -11,4 +11,5 @@
     <string name="stop">Detener</string>
     <string name="unsupported_language">Idioma no soportado</string>
     <string name="something_went_wrong_try_again_later">Ha ocurrido un error, por favor intente de nuevo mas tarde…"</string>
+    <string name="country_flag">Bandera de País Flag</string>
 </resources>

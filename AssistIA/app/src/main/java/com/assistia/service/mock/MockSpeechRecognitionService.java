@@ -14,7 +14,7 @@ public class MockSpeechRecognitionService implements ISpeechRecognitionService {
         this.processResult = processResult;
     }
     @Override
-    public void Run() {
+    public void run() {
         CompletableFuture.supplyAsync(() -> {
             try {
                 Thread.sleep(2000);
