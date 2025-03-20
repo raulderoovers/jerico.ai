@@ -18,6 +18,9 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
@@ -39,6 +42,8 @@ import com.assistia.model.Settings;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
 import com.assistia.service.SettingsService;
+import com.assistia.service.SpeechRecognitionService;
+import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
 
@@ -127,17 +132,20 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
 
         this.speakNowMessage = getString(R.string.speak_now);
 
-        //ActivityResultLauncher<Intent> activityLauncher =
-        //    registerForActivityResult(new StartActivityForResult(), this::processResult);
-        //this.speechRecognitionService = new SpeechRecognitionService(this, activityLauncher);
-        this.speechRecognitionService = new MockSpeechRecognitionService(this::processResult);
+        if(Boolean.parseBoolean(BuildConfig.ASSISTANT_SERVICE_IS_MOCKED)){
+            this.speechRecognitionService = new MockSpeechRecognitionService(this::processResult);
+            this.speechSynthesizerService = new MockSpeechSynthesizerService(this);
+        }else{
+            ActivityResultLauncher<Intent> activityLauncher =
+                registerForActivityResult(new StartActivityForResult(), this::processResult);
+            this.speechRecognitionService = new SpeechRecognitionService(this, activityLauncher);
+            this.speechSynthesizerService = new SpeechSynthesizerService(this);
+        }
 
         String apiUrl = BuildConfig.ASSISTANT_SERVICE_URL;
         String apiKey = BuildConfig.ASSISTANT_SERVICE_KEY;
         this.assistantService = new MistralAIService(apiUrl, apiKey);
 
-        //this.speechSynthesizerService = new SpeechSynthesizerService(this);
-        this.speechSynthesizerService = new MockSpeechSynthesizerService(this);
 
         Log.d(LOG_TAG, "onCreate: Started OK!");
     }
