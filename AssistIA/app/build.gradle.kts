@@ -31,6 +31,7 @@ android {
         debug {
             buildConfigField("String", "ASSISTANT_SERVICE_URL", "\"${project.extra["assistant.service.url"]}\"")
             buildConfigField("String", "ASSISTANT_SERVICE_KEY", "\"${project.extra["assistant.service.key"]}\"")
+            buildConfigField("String", "ASSISTANT_SERVICE_IS_MOCKED", "\"${project.extra["assistant.service.mocked"]}\"")
         }
         release {
             isMinifyEnabled = false
@@ -40,6 +41,7 @@ android {
             )
             buildConfigField("String", "ASSISTANT_SERVICE_URL", "\"${project.extra["assistant.service.url"]}\"")
             buildConfigField("String", "ASSISTANT_SERVICE_KEY", "\"${project.extra["assistant.service.key"]}\"")
+            buildConfigField("String", "ASSISTANT_SERVICE_IS_MOCKED", "\"${project.extra["assistant.service.mocked"]}\"")
         }
     }
     compileOptions {
