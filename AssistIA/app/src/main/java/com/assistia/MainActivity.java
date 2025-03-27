@@ -15,24 +15,21 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import com.assistia.adapter.ChatAdapter;
 import com.assistia.adapter.LanguageSpinnerAdapter;
 import com.assistia.contract.IAssistantService;
+import com.assistia.contract.ILanguageChangeListener;
 import com.assistia.contract.ISpeechRecognitionService;
 import com.assistia.contract.ISpeechSynthesizerService;
-import com.assistia.contract.ILanguageChangeListener;
 import com.assistia.helper.LanguageHelper;
 import com.assistia.listener.LanguageSpinnerOnItemSelectedListener;
 import com.assistia.model.AssistIAChatMessage;
@@ -46,7 +43,6 @@ import com.assistia.service.SpeechRecognitionService;
 import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
     ChatAdapter chatAdapter;
     List<BaseChatMessage> messages;
     SettingsService settingsService;
+    Activity activity;
 
     @SuppressLint({"WrongViewCast", "MissingInflatedId"})
     @Override
