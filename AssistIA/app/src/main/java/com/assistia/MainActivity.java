@@ -15,21 +15,21 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import com.assistia.adapter.ChatAdapter;
 import com.assistia.adapter.LanguageSpinnerAdapter;
 import com.assistia.contract.IAssistantService;
+import com.assistia.contract.ILanguageChangeListener;
 import com.assistia.contract.ISpeechRecognitionService;
 import com.assistia.contract.ISpeechSynthesizerService;
-import com.assistia.contract.ILanguageChangeListener;
 import com.assistia.helper.LanguageHelper;
 import com.assistia.listener.LanguageSpinnerOnItemSelectedListener;
 import com.assistia.model.AssistIAChatMessage;
@@ -39,9 +39,10 @@ import com.assistia.model.Settings;
 import com.assistia.model.UserChatMessage;
 import com.assistia.service.MistralAIService;
 import com.assistia.service.SettingsService;
+import com.assistia.service.SpeechRecognitionService;
+import com.assistia.service.SpeechSynthesizerService;
 import com.assistia.service.mock.MockSpeechRecognitionService;
 import com.assistia.service.mock.MockSpeechSynthesizerService;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
     ChatAdapter chatAdapter;
     List<BaseChatMessage> messages;
     SettingsService settingsService;
+    Activity activity;
 
     @SuppressLint({"WrongViewCast", "MissingInflatedId"})
     @Override
@@ -127,17 +129,20 @@ public class MainActivity extends AppCompatActivity implements ILanguageChangeLi
 
         this.speakNowMessage = getString(R.string.speak_now);
 
-        //ActivityResultLauncher<Intent> activityLauncher =
-        //    registerForActivityResult(new StartActivityForResult(), this::processResult);
-        //this.speechRecognitionService = new SpeechRecognitionService(this, activityLauncher);
-        this.speechRecognitionService = new MockSpeechRecognitionService(this::processResult);
+        if(Boolean.parseBoolean(BuildConfig.ASSISTANT_SERVICE_IS_MOCKED)){
+            this.speechRecognitionService = new MockSpeechRecognitionService(this::processResult);
+            this.speechSynthesizerService = new MockSpeechSynthesizerService(this);
+        }else{
+            ActivityResultLauncher<Intent> activityLauncher =
+                registerForActivityResult(new StartActivityForResult(), this::processResult);
+            this.speechRecognitionService = new SpeechRecognitionService(this, activityLauncher);
+            this.speechSynthesizerService = new SpeechSynthesizerService(this);
+        }
 
         String apiUrl = BuildConfig.ASSISTANT_SERVICE_URL;
         String apiKey = BuildConfig.ASSISTANT_SERVICE_KEY;
         this.assistantService = new MistralAIService(apiUrl, apiKey);
 
-        //this.speechSynthesizerService = new SpeechSynthesizerService(this);
-        this.speechSynthesizerService = new MockSpeechSynthesizerService(this);
 
         Log.d(LOG_TAG, "onCreate: Started OK!");
     }
